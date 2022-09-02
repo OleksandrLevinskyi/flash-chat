@@ -16,6 +16,14 @@ class _ChatScreenState extends State<ChatScreen> {
   final _firestore = FirebaseFirestore.instance;
   String message = '';
 
+  void messagesStream() async {
+    await _firestore.collection('messages').snapshots().forEach((snapshot) {
+      snapshot.docs.forEach((message) {
+        print(message.data());
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -62,6 +70,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         'text': message,
                         'sender': _auth.currentUser.email,
                       });
+                      messagesStream();
                     },
                     child: Text(
                       'Send',
