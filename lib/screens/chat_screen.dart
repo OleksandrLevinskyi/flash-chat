@@ -16,14 +16,6 @@ class _ChatScreenState extends State<ChatScreen> {
   final _firestore = FirebaseFirestore.instance;
   String message = '';
 
-  void messagesStream() async {
-    await _firestore.collection('messages').snapshots().forEach((snapshot) {
-      snapshot.docs.forEach((message) {
-        print(message.data());
-      });
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -51,6 +43,31 @@ class _ChatScreenState extends State<ChatScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
+            StreamBuilder<QuerySnapshot>(
+              stream: _firestore.collection('messages').snapshots(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData) {
+                  return Center(
+                    child: CircularProgressIndicator(
+                      backgroundColor: Colors.lightBlueAccent,
+                    ),
+                  );
+                }
+
+                final messages = snapshot.data.docs;
+                final messageWidgets = messages.map((message) {
+                  final messageData = message.data() as Map;
+                  final text = messageData['text'];
+                  final sender = messageData['sender'];
+
+                  return Text('$text - $sender');
+                }).toList();
+
+                return Column(
+                  children: messageWidgets,
+                );
+              },
+            ),
             Container(
               decoration: kMessageContainerDecoration,
               child: Row(
@@ -70,7 +87,6 @@ class _ChatScreenState extends State<ChatScreen> {
                         'text': message,
                         'sender': _auth.currentUser.email,
                       });
-                      messagesStream();
                     },
                     child: Text(
                       'Send',
