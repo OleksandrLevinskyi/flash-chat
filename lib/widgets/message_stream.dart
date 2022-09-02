@@ -1,8 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flash_chat/widgets/message_bubble.dart';
 import 'package:flutter/material.dart';
 
 class MessageStream extends StatelessWidget {
+  final _auth = FirebaseAuth.instance;
   final _firestore = FirebaseFirestore.instance;
 
   @override
@@ -24,11 +26,16 @@ class MessageStream extends StatelessWidget {
           final text = messageData['text'];
           final sender = messageData['sender'];
 
-          return MessageBubble(text, sender);
+          return MessageBubble(
+            text: text,
+            sender: sender,
+            isAuthor: sender == _auth.currentUser.email,
+          );
         }).toList();
 
         return Expanded(
           child: ListView(
+            reverse: true,
             padding: EdgeInsets.symmetric(horizontal: 10, vertical: 20),
             children: messageBubbles,
           ),
